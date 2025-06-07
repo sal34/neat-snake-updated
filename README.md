@@ -8,8 +8,16 @@ It also print topologies
 ![](demo/net.jpg)
 
 # Requirements
-This projects requires pygame python library as well as python-neat library
-For running trained models (and print network topologies), you will also need graphviz and matplotlib
+The project requires **Python 3.8+**. All Python dependencies can be installed
+using `pip`:
+
+```bash
+pip install -r requirements.txt
+```
+
+For running trained models and printing network topologies you will also need
+the Graphviz binaries installed on your system in addition to the Python
+`graphviz` package.
 
 # Running
 To run this game you need to execute the game file inside the project folder with python.  
