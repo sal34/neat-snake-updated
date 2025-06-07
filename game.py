@@ -1,4 +1,5 @@
 import os
+import neat
 from neat import nn, population
 import pygame
 import model.field as field
@@ -190,11 +191,14 @@ def get_inputs(game_matrix, position, orientation):  # (dx,dy)
 def save_best_generation_instance(instance, filename='trained/best_generation_instances.pickle'):
     instances = []
     if os.path.isfile(filename):
-        instances = load_object(filename)
+        try:
+            instances = load_object(filename)
+        except Exception as e:
+            print(f"Could not load {filename}: {e}")
     instances.append(instance)
     save_object(instances, filename)
 
-def eval_fitness(genomes):
+def eval_fitness(genomes, config):
     global best_fitness
     global best_foods
     global screen
@@ -211,9 +215,9 @@ def eval_fitness(genomes):
     # global speed
     best_instance = None
     genome_number = 0
-    for g in genomes:
+    for genome_id, g in genomes:
 
-        net = nn.create_feed_forward_phenotype(g)
+        net = neat.nn.FeedForwardNetwork.create(g, config)
         dx = 1
         dy = 0
         score = 0.0
@@ -255,7 +259,7 @@ def eval_fitness(genomes):
                         print(input_names[i], " - ",inputs[i])
                     
                 
-                outputs = net.serial_activate(inputs)
+                outputs = net.activate(inputs)
                 direction = outputs.index(max(outputs))
                 if direction == 0:  # dont turn
                     # print "Straight"
@@ -367,8 +371,19 @@ plt.title('Best fitness')
 ax = fig.add_subplot(111)
 line_best_fitness, = ax.plot(list_best_fitness, 'r-')  # Returns a tuple of line objects, thus the comma
 
-pop = population.Population('config')
+config_path = os.path.join(os.path.dirname(__file__), 'config')
+neat_config = neat.Config(
+    neat.DefaultGenome,
+    neat.DefaultReproduction,
+    neat.DefaultSpeciesSet,
+    neat.DefaultStagnation,
+    config_path,
+)
+pop = population.Population(neat_config)
 if len(sys.argv) > 1:
-    pop = load_object(sys.argv[1])
-    print("Reading popolation from " + sys.argv[1])
+    try:
+        pop = load_object(sys.argv[1])
+        print("Reading popolation from " + sys.argv[1])
+    except Exception as e:
+        print(f"Could not load population from {sys.argv[1]}: {e}")
 pop.run(eval_fitness, 10000)
